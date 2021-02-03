@@ -67,8 +67,8 @@ df = pd.DataFrame(
     }
 )
 
-# find all links which contain "Brandenburg" (close enough atm)
-links = soup.find_all(href=re.compile("brandenburg"))
+# find all links which contain "job"
+links = soup.find_all(href=re.compile("job"))
 
 # extract data for each row and add it to DataFrame
 for link in links:
