@@ -106,7 +106,7 @@ olddata = pd.read_csv("gigacareersdata/"+yesterday.strftime("%Y-%m-%d")+"-giga_c
 
 # transfer date from old to new data
 for row in newdata.itertuples():
-    if olddata.id.isin([row[3]]).any(): # check if newdata ID (in 4th position) is also in olddata
+    if olddata.id.isin([row[3]]).any(): # check if newdata ID (in 3rd position) is also in olddata
         olddate = olddata.loc[olddata['id']==row[3], "date"].iloc[0]
         newdata.loc[newdata['id']==row[3], "date"] = olddate
         
