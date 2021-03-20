@@ -55,9 +55,8 @@ scroll(driver, 0.2) # time in floating point seconds
 soup_file=driver.page_source
 soup = BeautifulSoup(soup_file, features="lxml")
 
-# DataFrame for Tesla Data
-
-df = pd.DataFrame(
+# DataFrame for new Tesla Data
+newdata = pd.DataFrame(
     {
         "link": [],
         "date": [],
@@ -66,6 +65,9 @@ df = pd.DataFrame(
         "location": [],
     }
 )
+
+# get date
+today = datetime.datetime.now()
 
 # find all links which contain "job"
 links = soup.find_all(href=re.compile("job"))
@@ -78,29 +80,39 @@ for link in links:
    td = link.find_parent("td")
    category = td.find_next_sibling("td")
    location = category.find_next_sibling("td")
-   date = location.find_next_sibling("td")
+   #date = location.find_next_sibling("td") ->has been removed by Tesla
 
    L = len(linktext)
    idstring = linktext[L-5]+linktext[L-4]+linktext[L-3]+linktext[L-2]+linktext[L-1]
 
-   dftemp = pd.DataFrame(
+   datatemp = pd.DataFrame(
         {
            "link": ["https://www.tesla.com"+str(linktext)],
-           "date": [str(date.string)],
+           "date": [today.strftime("%Y-%m-%d")],
            "id": [int(idstring)],
            "category": [str(category.string)],
            "location": [str(location.string)],
         }
    )
 
-   df = pd.concat([df,dftemp], ignore_index=True, sort=False)
+   newdata = pd.concat([newdata,datatemp], ignore_index=True, sort=False)
 
 # Close the browser
 driver.quit()
 
+# DataFrame for old Tesla Data
+yesterday = today - datetime.timedelta(days=1)
+olddata = pd.read_csv("gigacareersdata/"+yesterday.strftime("%Y-%m-%d")+"-giga_careers.csv")
+
+# transfer date from old to new data
+for row in newdata.itertuples():
+    if olddata.id.isin([row[3]]).any(): # check if newdata ID (in 4th position) is also in olddata
+        olddate = olddata.loc[olddata['id']==row[3], "date"].iloc[0]
+        newdata.loc[newdata['id']==row[3], "date"] = olddate
+        
 # sort by date
-df["date"] = pd.to_datetime(df["date"], dayfirst=True)
-df = df.sort_values(by="date", ascending=False)
+#newdata["date"] = pd.to_datetime(newdata["date"], dayfirst=True)
+newdata = newdata.sort_values(by="date", ascending=False)
 
 # count how many times a date appears (= number of jobs per day)
 #dfc = df["date"].value_counts().rename_axis("countdates").reset_index(name="counts")
@@ -108,13 +120,12 @@ df = df.sort_values(by="date", ascending=False)
 #df = pd.concat([df, dfc.reindex(df.index)], axis=1)
 
 # save to csv file with current date
-dt = datetime.datetime.now()
-df.to_csv(dt.strftime("%Y")+"-"+dt.strftime("%m")+"-"+dt.strftime("%d")+"-"+"giga_careers.csv")
+newdata.to_csv("gigacareersdata/" + today.strftime("%Y-%m-%d") + "-giga_careers.csv")
 
 # save to html file
-text = "updated on "+dt.strftime("%c")+" from <a href=""https://www.tesla.com/de_DE/careers/search/?country=DE&location=Gr%C3%BCnheide%20(Gigafactory%20Berlin)&region=3"">https://www.tesla.com/de_DE/careers/search/?country=DE&location=Gr%C3%BCnheide%20(Gigafactory%20Berlin)&region=3</a><br><br>\n"
+text = "Changes: as of 2021-03-20 Tesla doesn't put dates anymore, so I am adding them every day for the new IDs<br><br>\n Last updated on "+today.strftime("%c")+" from <a href=""https://www.tesla.com/de_DE/careers/search/?country=DE&location=Gr%C3%BCnheide%20(Gigafactory%20Berlin)&region=3"">https://www.tesla.com/de_DE/careers/search/?country=DE&location=Gr%C3%BCnheide%20(Gigafactory%20Berlin)&region=3</a><br><br>\n"
 
-html = df.to_html(columns=["link","date","id","category","location"], float_format="{0:.0f}".format, index=False, justify="center", render_links=True)
+html = newdata.to_html(columns=["link","date","id","category","location"], float_format="{0:.0f}".format, index=False, justify="center", render_links=True)
 
 f = open("giga_careers.html", "w")
 f.write(text+html)
