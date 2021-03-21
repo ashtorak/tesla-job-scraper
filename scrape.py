@@ -46,7 +46,7 @@ chrome_driver = os.getcwd() +"\\chromedriver.exe"
 driver = webdriver.Chrome(options=opts, executable_path=chrome_driver)
 
 # Load the HTML page
-driver.get("https://www.tesla.com/de_DE/careers/search/?country=DE&location=Grünheide (Gigafactory Berlin)&region=3")
+driver.get("https://www.tesla.com/de_DE/careers/search/?country=DE&location=Berlin%20Gigafactory")
 
 # scroll through it to load all elements
 scroll(driver, 0.2) # time in floating point seconds
@@ -122,8 +122,12 @@ newdata = newdata.sort_values(by="date", ascending=False)
 # save to csv file with current date
 newdata.to_csv("gigacareersdata/" + today.strftime("%Y-%m-%d") + "-giga_careers.csv")
 
-# save to html file
-text = "Changes: as of 2021-03-20 Tesla doesn't put dates anymore, so I am adding them every day for the new IDs<br><br>\n Last updated on "+today.strftime("%c")+" from <a href=""https://www.tesla.com/de_DE/careers/search/?country=DE&location=Gr%C3%BCnheide%20(Gigafactory%20Berlin)&region=3"">https://www.tesla.com/de_DE/careers/search/?country=DE&location=Gr%C3%BCnheide%20(Gigafactory%20Berlin)&region=3</a><br><br>\n"
+# save to html file with some additional text
+texthint = "Changes: as of 2021-03-20 Tesla doesn't put dates anymore, so I am adding them every day for the new IDs<br><br>\n"
+textupdated = "Last updated on "+today.strftime("%c")+" from <a href=""https://www.tesla.com/de_DE/careers/search/?country=DE&location=Berlin%20Gigafactory"">https://www.tesla.com/de_DE/careers/search/?country=DE&location=Berlin%20Gigafactory</a><br><br>\n"
+textlinks1 = "Github: <a href=""https://github.com/ashtorak/tesla-job-scraper"">https://github.com/ashtorak/tesla-job-scraper</a><br><br>\n"
+textlinks2 = "TFF-Forum: <a href=""https://tff-forum.de/t/gf-4-jobs-und-bewerbungen"">https://tff-forum.de/t/gf-4-jobs-und-bewerbungen</a><br><br>\n"
+text = texthint+textupdated+textlinks1+textlinks2
 
 html = newdata.to_html(columns=["link","date","id","category","location"], float_format="{0:.0f}".format, index=False, justify="center", render_links=True)
 
