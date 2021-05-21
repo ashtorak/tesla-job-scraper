@@ -1,4 +1,6 @@
 # tesla-job-scraper
+HINT: Tesla change their site frequently which breaks things. Also chrome had a change recently which broke something. I won't fix this anymore as I have lost interest.
+
 scrapes job listings from Tesla website (link needs to be set)  
 using Python3 with  
 BeautifulSoup,  
